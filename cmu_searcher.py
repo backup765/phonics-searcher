@@ -26,7 +26,7 @@ PHONEMES = [
     
     # Vowels
     'AE', 'IH', 'EH', 'AA', 'UH', 'AH', 'EY', 'AY', 'OW', 'AW',
-    'OY', 'UW', 'ER', 'AO',
+    'OY', 'UW', 'ER', 'AO', 'IY'
 ]
 
 
