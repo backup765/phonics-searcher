@@ -1,35 +1,149 @@
 <style>
-  .wrapper { font-family: sans-serif; max-width: 100%; margin: 0 auto; }
-  .master-controls { display: flex; gap: 10px; margin-bottom: 10px; }
-  .ctrl-btn { flex: 1; padding: 10px; cursor: pointer; background: #444; color: white; border: none; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
-  .main-container { display: flex; align-items: stretch; gap: 10px; }
-  .row-sidebar { display: grid; grid-template-rows: repeat(7, 1fr); width: 40px; }
-  .row-btn-container { display: flex; align-items: center; justify-content: center; }
-  .row-btn { width: 30px; height: 30px; background: #888; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 10px; font-weight: bold; transition: background 0.2s; }
+  .wrapper {
+    font-family: sans-serif;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .master-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .ctrl-btn {
+    flex: 1;
+    padding: 10px;
+    cursor: pointer;
+    background: #444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .main-container {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .row-sidebar {
+    display: grid;
+    grid-template-rows: repeat(7, 1fr);
+    width: 40px;
+  }
+
+  .row-btn-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .row-btn {
+    width: 30px;
+    height: 30px;
+    background: #888;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+
   .row-btn:hover { background: #555; }
 
   .grid-wrapper {
     position: relative;
     flex-grow: 1;
-    background-image: url('https://itoigawa-test.carrd.co/assets/images/image01.jpg?v=dff670dd'); 
     background-size: 100% 100%;
     background-repeat: no-repeat;
+    background-image: url('https://itoigawa-test.carrd.co/assets/images/image01.jpg?v=dff670dd'); 
     aspect-ratio: 900 / 630; 
   }
 
-  #checkbox-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(7, 1fr); height: 100%; width: 100%; }
+  #checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+    height: 100%;
+    width: 100%;
+  }
 
-  .tile { display: flex; align-items: center; justify-content: center; cursor: pointer; box-sizing: border-box; transition: all 0.1s ease; font-size: 0.8rem; font-weight: bold; user-select: none; border: 0.5px solid rgba(0, 0, 0, 0.05); }
+  .tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.1s ease;
+    font-size: 0.8rem;
+    font-weight: bold;
+    user-select: none;
+    border: 0.5px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+  }
+
   .tile[data-state="0"] { background: rgba(255, 255, 255, 0.5); color: #000; }
   .tile[data-state="1"] { background: rgba(76, 175, 80, 0.5); color: #fff; }
   .tile[data-state="2"] { background: rgba(255, 193, 7, 0.7); color: #000; }
 
-  /* New Dictionary Selector Styles */
-  .dict-selector { display: flex; gap: 5px; margin-top: 15px; }
-  .dict-btn { flex: 1; padding: 8px; font-size: 0.65rem; cursor: pointer; border: 1px solid #ccc; background: #eee; border-radius: 4px; font-weight: bold; transition: 0.2s; }
-  .dict-btn.active { background: #000; color: #fff; border-color: #000; }
+  .dict-selector {
+    display: flex;
+    gap: 5px;
+    margin-top: 15px;
+  }
 
-  .action-btn { width: 100%; padding: 15px; margin-top: 15px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  .dict-btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 0.65rem;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: #eee;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+
+  .dict-btn.active {
+    background: #000;
+    color: #fff;
+    border-color: #000;
+  }
+
+  .action-btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 15px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  /* Result Box Styles */
+  #result-display {
+    width: 100%;
+    height: 150px; /* Fixed initial height */
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    background: #fdfdfd;
+    resize: vertical; /* Allows user to adjust height */
+    overflow-y: scroll;
+    box-sizing: border-box;
+    display: block;
+  }
 </style>
 
 <div class="wrapper">
@@ -46,18 +160,30 @@
   </div>
 
   <div class="dict-selector">
-    <button class="dict-btn active" onclick="selectDict('clean-common', this)">Clean Common</button>
-    <button class="dict-btn" onclick="selectDict('common', this)">Common</button>
-    <button class="dict-btn" onclick="selectDict('clean', this)">Clean</button>
-    <button class="dict-btn" onclick="selectDict('full', this)">Full</button>
+    <button id="btn-clean-common" class="dict-btn active" onclick="selectDict('clean-common')">Clean Common</button>
+    <button id="btn-common" class="dict-btn" onclick="selectDict('common')">Common</button>
+    <button id="btn-clean" class="dict-btn" onclick="selectDict('clean')">Clean</button>
+    <button id="btn-full" class="dict-btn" onclick="selectDict('full')">Full</button>
   </div>
 
   <button id="action-button" class="action-btn">Print Selected List</button>
+
+  <textarea id="result-display" placeholder="Results will appear here..." readonly></textarea>
 </div>
 
 <script>
-  let selectedDictKey = 'clean-common'; // Default selection
+  let selectedDictKey = 'clean-common';
   const dictionaries = { 'clean-common': null, 'clean': null, 'common': null, 'full': null };
+
+  const phonemes = [
+    "S", "AE", "T", "IH", "P", "N",
+    "K", "EH", "HH", "R", "M", "D",
+    "G", "AA", "AH", "L", "F", "B",
+    "EY", "JH", "OW", "AY", "IY", "AOR",
+    "Z", "W", "NG", "V", "UH", "UW",
+    "Y", "KS", "CH", "SH", "DH", "TH",
+    "KW", "AW", "OY", "YUW", "ER", "AAR"
+  ];
 
   const filePaths = {
     'clean-common': 'https://raw.githubusercontent.com/backup765/phonics-searcher/refs/heads/main/data/cmu_dict_clean-common.json',
@@ -73,30 +199,43 @@
         dictionaries[key] = await response.json();
       });
       await Promise.all(loaders);
-      console.log("Data Loaded");
-    } catch (err) { console.error(err); }
+      console.log("Phoneme dictionaries loaded.");
+    } catch (err) { console.error("Error loading dictionaries:", err); }
   }
 
-  function selectDict(key, btn) {
+  function selectDict(key) {
     selectedDictKey = key;
-    document.querySelectorAll('.dict-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    document.querySelectorAll('.dict-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-${key}`).classList.add('active');
   }
 
-  // The final search function placeholder
   function searchSubset(wordDict, selectedPhonemes, forcedPhonemes = []) {
-    console.log("Searching Dictionary:", selectedDictKey);
-    console.log("Selected (State 1 & 2):", selectedPhonemes);
-    console.log("Forced (State 2 only):", forcedPhonemes);
-    
-    // Logic for filtering wordDict goes here
-    alert(`Ready to search ${Object.keys(wordDict).length} words!`);
+    const targetSet = new Set(selectedPhonemes);
+    const forcedSet = new Set(forcedPhonemes);
+    const display = document.getElementById('result-display');
+
+    let matches = Object.entries(wordDict).filter(([word, pron]) => {
+        const wordPhonemes = pron.split(' ');
+        const isSubset = wordPhonemes.every(p => targetSet.has(p));
+        if (!isSubset) return false;
+
+        if (forcedSet.size > 0) {
+            const wordSet = new Set(wordPhonemes);
+            return [...forcedSet].every(p => wordSet.has(p));
+        }
+        return true;
+    });
+
+    matches.sort((a, b) => a[0].length - b[0].length || a[0].localeCompare(b[0]));
+
+    // Update the Textbox instead of console
+    const resultWords = matches.map(m => m[0]);
+    display.value = resultWords.length > 0 ? resultWords.join('\n') : "No matches found.";
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('checkbox-grid');
     const sidebar = document.getElementById('row-sidebar');
-    const cols = 6;
     const rows = 7;
 
     for (let r = 0; r < rows; r++) {
@@ -106,43 +245,43 @@
       sidebar.appendChild(container);
     }
 
-    for (let i = 1; i <= (cols * rows); i++) {
+    phonemes.forEach((ph, index) => {
       const tile = document.createElement('div');
       tile.classList.add('tile');
       tile.setAttribute('data-state', '0');
-      tile.setAttribute('data-value', i);
-      tile.setAttribute('data-row', Math.floor((i - 1) / cols));
-      tile.innerText = i;
+      tile.setAttribute('data-value', ph);
+      tile.setAttribute('data-row', Math.floor(index / 6));
+      tile.innerText = ph;
       tile.onclick = function() {
         this.setAttribute('data-state', (parseInt(this.getAttribute('data-state')) + 1) % 3);
       };
       grid.appendChild(tile);
-    }
+    });
 
     document.getElementById('action-button').onclick = () => {
-      if (!dictionaries[selectedDictKey]) return alert("Data still loading...");
+      if (!dictionaries[selectedDictKey]) return alert("Data is still loading...");
 
-      let selectedPhonemes = [];
-      let forcedPhonemes = [];
+      let selected = [];
+      let forced = [];
 
       document.querySelectorAll('.tile').forEach(tile => {
         const state = tile.getAttribute('data-state');
         const val = tile.getAttribute('data-value');
-        
-        if (state === "1" || state === "2") {
-          selectedPhonemes.push(val);
-        }
-        if (state === "2") {
-          forcedPhonemes.push(val);
-        }
+        if (state === "1" || state === "2") selected.push(val);
+        if (state === "2") forced.push(val);
       });
 
-      searchSubset(dictionaries[selectedDictKey], selectedPhonemes, forcedPhonemes);
+      searchSubset(dictionaries[selectedDictKey], selected, forced);
     };
 
     loadDictionaries();
   });
 
-  function setAll(state) { document.querySelectorAll('.tile').forEach(t => t.setAttribute('data-state', state)); }
-  function setRow(rowIdx, state) { document.querySelectorAll(`.tile[data-row="${rowIdx}"]`).forEach(t => t.setAttribute('data-state', state)); }
+  function setAll(state) {
+    document.querySelectorAll('.tile').forEach(t => t.setAttribute('data-state', state));
+  }
+
+  function setRow(rowIdx, state) {
+    document.querySelectorAll(`.tile[data-row="${rowIdx}"]`).forEach(t => t.setAttribute('data-state', state));
+  }
 </script>
