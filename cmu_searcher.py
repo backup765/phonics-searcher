@@ -17,7 +17,7 @@ cmu_dict_clean_common.json - only the common words from the clean list. Again,
 import json
 
 # Define available phonemes
-#S T P N M F L K D G B V Z R HH JH CH SH TH DH NG Y W AE IH EH AA UH AH EY AY OW AW OY UW ER AO
+#S T P N M F L K D G B V Z R HH JH CH SH TH DH NG Y W AE IH EH AA UH AH EY AY OW AW OY UW ER AO IY
 
 PHONEMES = [
     # Consonants
@@ -45,7 +45,7 @@ def search_subset(word_dict, selected_phonemes, forced_phonemes=[]):
         word_set = set(pron.split())
         if word_set.issubset(target_set):
             if forced_set:
-                print(f"must have {forced_set}")
+                # print(f"must have {forced_set}")
                 if forced_set.issubset(word_set):
                     matches.append((word, pron))
             else:
@@ -59,11 +59,11 @@ def main():
     # Open all the dicts. Probably don't need to do this
     with open('data/cmu_dict_common.json', 'r') as f:
         common_dict = json.load(f)
-    with open('data/cmu_dict.json', 'r') as f:
+    with open('data/cmu_dict_full.json', 'r') as f:
         full_dict = json.load(f)
     with open('data/cmu_dict_clean.json', 'r') as f:
         clean_dict = json.load(f)    
-    with open('data/cmu_dict_clean_common.json', 'r') as f:
+    with open('data/cmu_dict_clean-common.json', 'r') as f:
         clean_common_dict = json.load(f)    
     
     print(f"Available phonemes: {', '.join(PHONEMES)}")
