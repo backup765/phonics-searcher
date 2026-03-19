@@ -7,7 +7,7 @@ http://www.speech.cs.cmu.edu/cgi-bin/cmudict
 
 Website will also need some type of form for users to report words that should be added or removed
 
-Need to display number of results, allow option to view results phonetically 
+Need to display number of results, allow option to view results phonetically. Row buttons need to toggle the whole row on or off.
 
 It would be nice if there was a program to go through the cmu_full list and verify pronunciation of words.
 This would require programs to:

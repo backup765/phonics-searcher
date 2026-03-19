@@ -1,64 +1,73 @@
 """
-Takes the full CMU json and generates a filtered version containing the top X most common words, based
-on one of the lists.
+Usage:
+python common_dic_generator.py <input.json> <list.txt> <limit>
+
+input.json - Original dictionary to be filtered
+list.txt - A list, sorted by word frequency
+limit - How many words in list.txt to look at
+
+
+Creates:
+input_list_common_limit.json
+
+Takes the input json and generates a filtered version containing the top <limit> most common words, based
+on a given list of words.
 """
 import json
 import os
+import sys
 
 def filter_cmu_dict():
-    # 1. List available frequency files
-    files = [f for f in os.listdir('.') if f.endswith('.txt')]
-    
-    if not files:
-        print("No .txt frequency lists found in this folder.")
+    # 1. Validate arguments
+    if len(sys.argv) < 4:
+        print("Usage: python common_dic_generator.py <input.json> <list.txt> <limit>")
         return
 
-    print("--- Available Frequency Lists ---")
-    for i, filename in enumerate(files):
-        print(f"[{i}] {filename}")
+    input_json = sys.argv[1]
+    list_file = sys.argv[2]
+    try:
+        limit = int(sys.argv[3])
+    except ValueError:
+        print("Error: Limit must be an integer.")
+        return
 
-    # 2. Get user choices
-    choice_idx = int(input("\nSelect a list by number: "))
-    selected_file = files[choice_idx]
-    limit = int(input("How many top words to keep (e.g., 20000)? "))
+    # 2. Extract the top N words from the frequency list
+    if not os.path.exists(list_file):
+        print(f"Error: {list_file} not found.")
+        return
 
-    # 3. Read the frequency list and extract the top N words
-    print(f"Reading {selected_file}...")
     top_words = set()
-    with open(selected_file, 'r', encoding='utf-8') as f:
+    with open(list_file, 'r', encoding='utf-8') as f:
         for i, line in enumerate(f):
-            if i >= limit:
-                break
-            # Split line and take the first part (the word)
+            if i >= limit: break
             parts = line.split()
-            if parts:
-                top_words.add(parts[0].lower())
+            if parts: top_words.add(parts[0].lower())
 
-    # 4. Load the CMU dictionary
-    input_json = 'cmu_dict_full.json'
+    # 3. Load the source JSON dictionary
     if not os.path.exists(input_json):
         print(f"Error: {input_json} not found.")
         return
 
     with open(input_json, 'r', encoding='utf-8') as f:
-        cmu_data = json.load(f)
+        dictionary_data = json.load(f)
 
-    # 5. Filter the data
-    # We keep the word if its lowercase version is in our frequency set
+    # 4. Filter
     filtered_data = {
-        word: pronunciation for word, pronunciation in cmu_data.items()
+        word: prons for word, prons in dictionary_data.items()
         if word.lower() in top_words
     }
 
-    # 6. Save the output
-    output_filename = f"filtered_{selected_file.replace('.txt', '')}_{limit}.json"
-    with open(output_filename, 'w', encoding='utf-8') as f:
+    # 5. Save with a combined name
+    # Example: my_dict_google10k_5000.json
+    base_name = os.path.splitext(input_json)[0]
+    list_name = os.path.splitext(list_file)[0]
+    output_name = f"{base_name}_{list_name}_common_{limit}.json"
+
+    with open(output_name, 'w', encoding='utf-8') as f:
         json.dump(filtered_data, f, indent=2)
 
-    print(f"\nSuccess!")
-    print(f"Original word count: {len(cmu_data)}")
-    print(f"Filtered word count: {len(filtered_data)}")
-    print(f"Saved to: {output_filename}")
+    print(f"Filtered {len(dictionary_data)} down to {len(filtered_data)}.")
+    print(f"Saved to: {output_name}")
 
 if __name__ == "__main__":
     filter_cmu_dict()
