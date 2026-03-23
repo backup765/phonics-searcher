@@ -1,5 +1,5 @@
 """
-Verifies pronunciation of words
+Retrieves the pronunciations listed in the online dictionary in both IPA nad ARPAbet
 """
 import requests
 import re

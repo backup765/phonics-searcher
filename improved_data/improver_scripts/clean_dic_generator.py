@@ -1,13 +1,13 @@
 """
+Takes a json dictionary and 'cleans' it by removing words that are not spelled phonetically,
+according to the phonetics taught in Jolly Phonics. Double consonants are allowed.
+All non-alphabet characters are stripped from the input before checking if its spelling is good.
+
 Usage:
 python clean_dic_generator.py <your_file.json>
 
 Creates:
 your_file_clean.json
-
-Takes a json dictionary and 'cleans' it by removing words that are not spelled phonetically,
-according to the phonetics taught in Jolly Phonics. Double consonants are allowed.
-All non-alphabet characters are stripped from the input before checking if its spelling is good.
 
 Examples:
   "kick": "K IH K" -> OK. k and ck both go to K

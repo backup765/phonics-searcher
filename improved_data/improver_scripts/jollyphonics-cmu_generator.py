@@ -1,12 +1,13 @@
 """
+Generates copies of words to make a dictionary in CMU format agree with Jolly Phonics rules.
+New entries are the old entry, with a '+' at the end. 
+
 Usage:
 python jollyphonics-cmu_generator.py <your_file.json>
 
 Creates:
 your_file_JP-ARPAbet.json
 
-Generates copies of words to make a dictionary in CMU format agree with Jolly Phonics rules.
-New entries are the old entry, with a '+' at the end. 
 Example:
 "four": "F AO R"
     =>

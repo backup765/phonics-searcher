@@ -1,0 +1,128 @@
+import requests
+import re
+import json
+import sys
+import os
+import time
+from phonecodes import phonecodes
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+ARPABET_PHONEMES = sorted([
+    'AA', 'AE', 'AH', 'AO', 'AW', 'AY', 'EH', 'ER', 'EY', 'IH', 'IY', 'OW', 'OY', 'UH', 'UW',
+    'B', 'CH', 'D', 'DH', 'F', 'G', 'HH', 'JH', 'K', 'L', 'M', 'N', 'NG', 'P', 'R', 'S', 'SH', 
+    'T', 'TH', 'V', 'W', 'Y', 'Z', 'ZH'
+], key=len, reverse=True)
+
+PHONEME_PATTERN = re.compile(fr"({'|'.join(ARPABET_PHONEMES)})(\d)?")
+
+def get_all_ipa(word):
+    url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}"
+    ipa_variants = set()
+    try:
+        time.sleep(0.3)
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            for entry in data:
+                if 'phonetic' in entry:
+                    ipa_variants.add(entry['phonetic'].strip('/'))
+                for p in entry.get('phonetics', []):
+                    if 'text' in p and p['text']:
+                        ipa_variants.add(p['text'].strip('/'))
+        elif response.status_code == 429:
+            print(f"\n[!] Rate Limited. Waiting 5s...")
+            time.sleep(5)
+            return get_all_ipa(word)
+    except Exception:
+        pass
+    return sorted(list(ipa_variants))
+
+def force_split_and_clean(raw_arpa):
+    raw_arpa = raw_arpa.upper().replace(" ", "")
+    matches = PHONEME_PATTERN.findall(raw_arpa)
+    return " ".join([m[0] for m in matches])
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python verify_cmu.py [source_json_path] [num_to_process]")
+        return
+
+    source_relative_path = sys.argv[1]
+    num_to_verify = int(sys.argv[2])
+    
+    source_path = os.path.join(BASE_DIR, source_relative_path)
+    output_path = os.path.join(BASE_DIR, "revised_cmu.json")
+
+    if not os.path.exists(source_path):
+        print(f"Error: {source_path} not found.")
+        return
+
+    with open(source_path, 'r', encoding='utf-8') as f:
+        source_data = json.load(f)
+
+    revised_data = {}
+    if os.path.exists(output_path):
+        with open(output_path, 'r', encoding='utf-8') as f:
+            try:
+                revised_data = json.load(f)
+            except:
+                revised_data = {}
+
+    source_keys = list(source_data.keys())
+    start_idx = 0
+    if revised_data:
+        last_revised_key = list(revised_data.keys())[-1]
+        if last_revised_key in source_keys:
+            start_idx = source_keys.index(last_revised_key) + 1
+
+    keys_batch = source_keys[start_idx : start_idx + num_to_verify]
+
+    for key in keys_batch:
+        word = re.sub(r'\d+$', '', key)
+        original_arpa = source_data[key]
+        
+        ipa_list = get_all_ipa(word)
+        api_options = set()
+        for ipa in ipa_list:
+            try:
+                converted = force_split_and_clean(phonecodes.convert(ipa, "ipa", "arpabet", "eng"))
+                api_options.add(converted)
+            except:
+                continue
+        api_options = sorted(list(api_options))
+
+        # LOGIC:
+        # 1. API has no data? Auto-keep original.
+        if not api_options:
+            print(f"[-] {word.upper()}: No API data. Auto-keeping original.")
+            revised_data[key] = original_arpa
+        
+        # 2. Original is confirmed by API? Auto-keep original.
+        elif original_arpa in api_options:
+            print(f"[+] {word.upper()}: Match confirmed.")
+            revised_data[key] = original_arpa
+            
+        # 3. API data exists but differs? Ask user.
+        else:
+            print(f"\n--- CONFLICT: {word.upper()} ---")
+            print(f" [0] Keep Original: {original_arpa}")
+            for i, opt in enumerate(api_options, 1):
+                print(f" [{i}] Use API:      {opt}")
+            
+            choice = input("Select option (or 's' to skip): ").strip().lower()
+            if choice == '0':
+                revised_data[key] = original_arpa
+            elif choice.isdigit() and 0 < int(choice) <= len(api_options):
+                revised_data[key] = api_options[int(choice) - 1]
+            else:
+                print("Skipping...")
+
+        # Save after every word
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(revised_data, f, indent=4)
+
+    print(f"\nBatch complete. Total entries: {len(revised_data)}")
+
+if __name__ == "__main__":
+    main()
