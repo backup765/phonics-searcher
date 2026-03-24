@@ -6,6 +6,7 @@ import os
 import time
 from phonecodes import phonecodes
 
+# Ensure absolute paths relative to the script's location
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ARPABET_PHONEMES = sorted([
@@ -26,10 +27,12 @@ def get_all_ipa(word):
             data = response.json()
             for entry in data:
                 if 'phonetic' in entry:
-                    ipa_variants.add(entry['phonetic'].strip('/'))
+                    # Remove spaces from API IPA
+                    ipa_variants.add(entry['phonetic'].strip('/').replace(" ", ""))
                 for p in entry.get('phonetics', []):
                     if 'text' in p and p['text']:
-                        ipa_variants.add(p['text'].strip('/'))
+                        # Remove spaces from API IPA
+                        ipa_variants.add(p['text'].strip('/').replace(" ", ""))
         elif response.status_code == 429:
             print(f"\n[!] Rate Limited. Waiting 5s...")
             time.sleep(5)
@@ -39,9 +42,19 @@ def get_all_ipa(word):
     return sorted(list(ipa_variants))
 
 def force_split_and_clean(raw_arpa):
+    """Formats ARPAbet string: space-separated, no digits."""
     raw_arpa = raw_arpa.upper().replace(" ", "")
     matches = PHONEME_PATTERN.findall(raw_arpa)
     return " ".join([m[0] for m in matches])
+
+def safe_arpa_to_ipa(arpa_string):
+    """Converts ARPAbet back to IPA for display purposes."""
+    try:
+        ipa = phonecodes.convert(arpa_string, "arpabet", "ipa", "eng")
+        # Remove spaces from converted IPA
+        return ipa.replace(" ", "")
+    except:
+        return "???"
 
 def main():
     if len(sys.argv) < 3:
@@ -83,46 +96,51 @@ def main():
         original_arpa = source_data[key]
         
         ipa_list = get_all_ipa(word)
-        api_options = set()
+        api_options = []
+        
+        unique_arpa = set()
         for ipa in ipa_list:
             try:
-                converted = force_split_and_clean(phonecodes.convert(ipa, "ipa", "arpabet", "eng"))
-                api_options.add(converted)
+                clean_arpa = force_split_and_clean(phonecodes.convert(ipa, "ipa", "arpabet", "eng"))
+                if clean_arpa not in unique_arpa:
+                    api_options.append((clean_arpa, ipa))
+                    unique_arpa.add(clean_arpa)
             except:
                 continue
-        api_options = sorted(list(api_options))
 
-        # LOGIC:
-        # 1. API has no data? Auto-keep original.
         if not api_options:
             print(f"[-] {word.upper()}: No API data. Auto-keeping original.")
             revised_data[key] = original_arpa
         
-        # 2. Original is confirmed by API? Auto-keep original.
-        elif original_arpa in api_options:
+        elif any(opt[0] == original_arpa for opt in api_options):
             print(f"[+] {word.upper()}: Match confirmed.")
             revised_data[key] = original_arpa
             
-        # 3. API data exists but differs? Ask user.
         else:
+            orig_ipa = safe_arpa_to_ipa(original_arpa)
             print(f"\n--- CONFLICT: {word.upper()} ---")
-            print(f" [0] Keep Original: {original_arpa}")
-            for i, opt in enumerate(api_options, 1):
-                print(f" [{i}] Use API:      {opt}")
+            print(f" [0] Keep Original: {original_arpa:20} /{orig_ipa}/")
             
-            choice = input("Select option (or 's' to skip): ").strip().lower()
-            if choice == '0':
-                revised_data[key] = original_arpa
-            elif choice.isdigit() and 0 < int(choice) <= len(api_options):
-                revised_data[key] = api_options[int(choice) - 1]
-            else:
-                print("Skipping...")
+            for i, (arpa, ipa) in enumerate(api_options, 1):
+                print(f" [{i}] Use API:      {arpa:20} /{ipa}/")
+            
+            user_input = input("Select #, enter custom ARPAbet, or [Enter] to skip: ").strip()
 
-        # Save after every word
+            if user_input == "":
+                print("Skipped.")
+                continue 
+            elif user_input == "0":
+                revised_data[key] = original_arpa
+            elif user_input.isdigit() and 0 < int(user_input) <= len(api_options):
+                revised_data[key] = api_options[int(user_input) - 1][0]
+            else:
+                # Store custom input as uppercase
+                revised_data[key] = user_input.upper()
+
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(revised_data, f, indent=4)
 
-    print(f"\nBatch complete. Total entries: {len(revised_data)}")
+    print(f"\nBatch complete. Total entries in revised_cmu.json: {len(revised_data)}")
 
 if __name__ == "__main__":
     main()
