@@ -3,6 +3,7 @@
     font-family: sans-serif;
     max-width: 100%;
     margin: 0 auto;
+    text-align: center; /* Centers the Search button */
   }
 
   .master-controls {
@@ -56,13 +57,15 @@
   }
 
   .row-btn:hover { background: #555; }
+  .row-btn.active-row { background: #4caf50; }
 
   .grid-wrapper {
     position: relative;
     flex-grow: 1;
+    /* Updated Background Image */
+    background-image: url('https://raw.githubusercontent.com/backup765/phonics-searcher/34c7d470d4e5779ae26d6c3e677290b595bceb2e/data/phonics_grid.jpg'); 
     background-size: 100% 100%;
     background-repeat: no-repeat;
-    background-image: url('https://itoigawa-test.carrd.co/assets/images/image01.jpg?v=dff670dd'); 
     aspect-ratio: 900 / 630; 
   }
 
@@ -110,28 +113,25 @@
     transition: 0.2s;
   }
 
-  .dict-btn.active {
-    background: #000;
-    color: #fff;
-    border-color: #000;
-  }
+  .dict-btn.active { background: #000; color: #fff; border-color: #000; }
 
+  /* Search Button Refinements */
   .action-btn {
-    width: 100%;
-    padding: 15px;
-    margin-top: 15px;
+    width: 50%; /* Half width */
+    padding: 12px;
+    margin: 15px auto; /* Centered */
     background: #000;
     color: #fff;
     border: none;
-    border-radius: 4px;
+    border-radius: 25px; /* More rounded */
     cursor: pointer;
     font-weight: bold;
+    display: block;
   }
 
-  /* Result Box Styles */
   #result-display {
     width: 100%;
-    height: 150px; /* Fixed initial height */
+    height: 150px;
     margin-top: 15px;
     padding: 10px;
     border: 1px solid #ccc;
@@ -139,10 +139,11 @@
     font-family: monospace;
     font-size: 0.9rem;
     background: #fdfdfd;
-    resize: vertical; /* Allows user to adjust height */
+    resize: vertical;
     overflow-y: scroll;
     box-sizing: border-box;
     display: block;
+    text-align: left;
   }
 </style>
 
@@ -166,7 +167,7 @@
     <button id="btn-full" class="dict-btn" onclick="selectDict('full')">Full</button>
   </div>
 
-  <button id="action-button" class="action-btn">Print Selected List</button>
+  <button id="action-button" class="action-btn">Search</button>
 
   <textarea id="result-display" placeholder="Results will appear here..." readonly></textarea>
 </div>
@@ -199,7 +200,6 @@
         dictionaries[key] = await response.json();
       });
       await Promise.all(loaders);
-      console.log("Phoneme dictionaries loaded.");
     } catch (err) { console.error("Error loading dictionaries:", err); }
   }
 
@@ -207,6 +207,20 @@
     selectedDictKey = key;
     document.querySelectorAll('.dict-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`btn-${key}`).classList.add('active');
+  }
+
+  function toggleRow(rowIdx, btn) {
+    // Check current state of first tile in row to decide toggle direction
+    const firstTile = document.querySelector(`.tile[data-row="${rowIdx}"]`);
+    const newState = firstTile.getAttribute('data-state') === "0" ? "1" : "0";
+    
+    document.querySelectorAll(`.tile[data-row="${rowIdx}"]`).forEach(t => {
+      t.setAttribute('data-state', newState);
+    });
+
+    // Visual feedback for row button
+    if (newState === "1") btn.classList.add('active-row');
+    else btn.classList.remove('active-row');
   }
 
   function searchSubset(wordDict, selectedPhonemes, forcedPhonemes = []) {
@@ -228,8 +242,8 @@
 
     matches.sort((a, b) => a[0].length - b[0].length || a[0].localeCompare(b[0]));
 
-    // Update the Textbox instead of console
-    const resultWords = matches.map(m => m[0]);
+    // Clean "+" from words for display
+    const resultWords = matches.map(m => m[0].replace(/\+/g, ''));
     display.value = resultWords.length > 0 ? resultWords.join('\n') : "No matches found.";
   }
 
@@ -241,7 +255,11 @@
     for (let r = 0; r < rows; r++) {
       const container = document.createElement('div');
       container.classList.add('row-btn-container');
-      container.innerHTML = `<button class="row-btn" onclick="setRow(${r}, 1)">R${r+1}</button>`;
+      const btn = document.createElement('button');
+      btn.classList.add('row-btn');
+      btn.innerText = 'R' + (r + 1);
+      btn.onclick = function() { toggleRow(r, this); };
+      container.appendChild(btn);
       sidebar.appendChild(container);
     }
 
@@ -279,9 +297,6 @@
 
   function setAll(state) {
     document.querySelectorAll('.tile').forEach(t => t.setAttribute('data-state', state));
-  }
-
-  function setRow(rowIdx, state) {
-    document.querySelectorAll(`.tile[data-row="${rowIdx}"]`).forEach(t => t.setAttribute('data-state', state));
+    if (state === "0") document.querySelectorAll('.row-btn').forEach(b => b.classList.remove('active-row'));
   }
 </script>
