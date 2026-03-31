@@ -1,3 +1,13 @@
+"""
+Run it to work on creating revised_cmu.json, a new version of the CMU that hopefully has less errors.
+Currently revised_cmu.json is working off of freqSort_cmu_dict_full_general_english_100k_common_21000.json
+Usage:
+python verify_cmu.py freqSort_cmu_dict_full_general_english_100k_common_21000.json <number>
+
+<number> is number of entries from freq...json to go through.
+ctrl-c at any time while running to end.
+"""
+
 import requests
 import re
 import json

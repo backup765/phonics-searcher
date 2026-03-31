@@ -3,6 +3,8 @@ Creates a new CMU from api.dictionaryapi.dev. Is able to stop and pick up again.
 Checks the most recent entry in the JSON and then starts up again from that point
 in the frequency list, adding the next <number> words.
 
+Doesn't work very well. The API has very bad date :<
+
 Pulls from frequency list general_english_100k.txt.
 Adds spellings to new_cmu.json.
 
