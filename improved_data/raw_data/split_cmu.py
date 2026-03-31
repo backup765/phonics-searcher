@@ -1,6 +1,6 @@
 import os
 
-def split_json_by_lines(input_file, output_folder, lines_per_file=500):
+def split_json_by_lines(input_file, output_folder, lines_per_file=200):
     # Create the output directory if it doesn't exist
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
