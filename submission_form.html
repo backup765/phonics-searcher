@@ -1,0 +1,39 @@
+<form id="submissionForm">
+<input type="text" id="word" placeholder="Word" required style="width:100%; margin-bottom:10px; padding:10px;">
+<input type="text" id="pronunciation" placeholder="Pronunciation" required style="width:100%; margin-bottom:10px; padding:10px;">
+<button type="submit" id="submitBtn" style="width:100%; padding:10px;">Submit Entry</button>
+<p id="statusMsg" style="display:none; margin-top:10px;"></p>
+</form>
+
+<script>
+document.getElementById('submissionForm').addEventListener('submit', async (e) => {
+e.preventDefault();
+const btn = document.getElementById('submitBtn');
+const status = document.getElementById('statusMsg');
+
+btn.disabled = true;
+status.style.display = 'block';
+status.textContent = 'Submitting...';
+
+const payload = {
+word: document.getElementById('word').value,
+pronunciation: document.getElementById('pronunciation').value
+};
+
+try {
+await fetch('https://script.google.com/macros/s/AKfycbxxCSvMU-OgzS-afcUUalavWuUAHy72KPAr7yqUpYNuXp3FPzCt--fwJdD3YP1BNTm2/exec', {
+method: 'POST',
+mode: 'no-cors', // Required for Google Apps Script Web Apps
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(payload)
+});
+
+status.textContent = 'Submitted successfully!';
+document.getElementById('submissionForm').reset();
+} catch (err) {
+status.textContent = 'An error occurred. Please try again.';
+} finally {
+btn.disabled = false;
+}
+});
+</script>
