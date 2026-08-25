@@ -4,13 +4,14 @@ Program to search for words using specific phonics for the Itoigawa English webs
 Original phonetic dictionary comes from here
 http://www.speech.cs.cmu.edu/cgi-bin/cmudict
 
-
-Website will also need some type of form for users to report words that should be added or removed, proably just a link to a Google form.
-
-made a script to remove vulgarity from a given json
-
-Maybe at some point add in a section below for sounds that are not in JP
+TODO:
 
 Add Japanese language support
 
-make cleared instructions, with pictures
+add better help text to the form
+
+make it clear that common-clean is the reccomended 
+
+consider removing the select row buttons
+
+add a : after dic in use
