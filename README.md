@@ -15,3 +15,7 @@ make it clear that common-clean is the reccomended
 consider removing the select row buttons
 
 add a : after dic in use
+
+just have 2 dics, clean-common and full-ishh
+
+python addNewWords.py new.txt data/cmu_dict_clean_common.json 

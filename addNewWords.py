@@ -13,6 +13,12 @@ def parse_words_from_text(file_path):
     words = [word.strip() for word in raw_words if word.strip()]
     return words
 
+def save_json_sorted(file_path, data):
+    """Sort dictionary alphabetically by key and write to file."""
+    sorted_data = dict(sorted(data.items(), key=lambda item: item[0]))
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(sorted_data, f, indent=2, ensure_ascii=False)
+
 def main():
     parser = argparse.ArgumentParser(
         description="Check text file words against a dictionary JSON and optionally add missing ones."
@@ -39,33 +45,24 @@ def main():
         print(f"Error: Could not find text file '{args.text_file}'.")
         return
 
-    json_updated = False
+    # Build a lookup set of JSON keys stripped of trailing '+' characters
+    normalized_keys = {key.rstrip('+') for key in data.keys()}
 
     for word in words:
-        if word in data:
+        if word in data or word in normalized_keys:
             continue
 
-        print(f"\nWord '{word}' is not in the JSON dictionary.")
-        choice = input("Do you want to add it? ([a]dd / [s]kip): ").strip().lower()
+        prompt_msg = f"\nWord '{word}' not found. Enter pronunciation (or press Enter to skip): "
+        user_input = input(prompt_msg).strip()
 
-        if choice in ("a", "add"):
-            pronunciation = input(f"Enter pronunciation for '{word}': ").strip()
-            data[word] = pronunciation
-            json_updated = True
-            print(f"Added '{word}': '{pronunciation}'")
+        if user_input:
+            data[word] = user_input
+            # Update the local lookup set so duplicates within the same text file are handled
+            normalized_keys.add(word)
+            save_json_sorted(args.json_file, data)
+            print(f"Added and saved '{word}': '{user_input}'")
         else:
             print(f"Skipped '{word}'.")
-
-    if json_updated:
-        # Sort dictionary alphabetically by key
-        data = dict(sorted(data.items(), key=lambda item: item[0]))
-        
-        # Save back to JSON file
-        with open(args.json_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        print("\nJSON file successfully updated and saved alphabetically.")
-    else:
-        print("\nNo changes were made to the JSON file.")
 
 if __name__ == "__main__":
     main()
