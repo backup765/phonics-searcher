@@ -8,7 +8,6 @@ TODO:
 
 Add Japanese language support
 
-add better help text to the form
 
 make it clear that common-clean is the reccomended 
 
