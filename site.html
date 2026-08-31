@@ -34,7 +34,7 @@
   .row-sidebar {
     display: grid;
     grid-template-rows: repeat(7, 1fr);
-    width: 77px; /* 30% thinner than 110px */
+    width: 77px;
   }
 
   .row-btn-container {
@@ -92,12 +92,12 @@
   .tile[data-state="1"] { background: rgba(76, 175, 80, 0.5); }
   .tile[data-state="2"] { background: rgba(255, 193, 7, 0.7); }
 
-  /* Control bar containing centered search button and right-aligned dict selector */
   .action-bar {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     margin-top: 15px;
+    position: relative;
   }
 
   .action-btn {
@@ -117,6 +117,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
   }
 
   .dict-label {
@@ -134,6 +135,74 @@
     border-radius: 4px;
     background: #fff;
     cursor: pointer;
+  }
+
+  /* Help Info Icon and Popup Box */
+  .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #666;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: bold;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  .help-icon:hover {
+    background: #000;
+  }
+
+  .info-popup {
+    display: none;
+    position: absolute;
+    top: 35px;
+    right: 0;
+    width: 280px;
+    background: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 0.75rem;
+    text-align: left;
+    z-index: 100;
+    color: #333;
+    line-height: 1.4;
+  }
+
+  .info-popup.active {
+    display: block;
+  }
+
+  .info-popup p {
+    margin: 0 0 8px 0;
+  }
+
+  .info-popup p:last-of-type {
+    margin-bottom: 0;
+  }
+
+  .info-close-btn {
+    display: block;
+    margin-top: 10px;
+    margin-left: auto;
+    padding: 3px 8px;
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .info-close-btn:hover {
+    background: #ddd;
   }
 
   #result-display {
@@ -179,13 +248,20 @@
     <button id="action-button" class="action-btn">Search</button>
 
     <div class="dict-container">
-      <span class="dict-label">Dictionary In Use</span>
+      <span class="dict-label">Dictionary In Use:</span>
       <select id="dict-select" class="dict-select" onchange="selectedDictKey = this.value">
-        <option value="clean-common" selected>Clean Common</option>
-        <option value="common">Common</option>
-        <option value="clean">Clean</option>
-        <option value="full">Full</option>
+        <option value="phonetic-words" selected>phonetic words</option>
+        <option value="full">full</option>
       </select>
+      
+      <!-- Help Icon and Info Box -->
+      <span class="help-icon" onclick="toggleHelpInfo()">?</span>
+      
+      <div id="info-popup" class="info-popup">
+        <p><strong>phonetic words</strong> ~2k words. Spelled phonetically according to Jolly Phonics rules. Students should be able to spell these words when heard</p>
+        <p><strong>full</strong> ~20k words. Words here have spelling rules not in Jolly Phonics (such as silent letters), but students should still be able to read them if seen</p>
+        <button class="info-close-btn" onclick="toggleHelpInfo()">Close</button>
+      </div>
     </div>
   </div>
 
@@ -194,8 +270,8 @@
 </div>
 
 <script>
-  let selectedDictKey = 'clean-common';
-  const dictionaries = { 'clean-common': null, 'clean': null, 'common': null, 'full': null };
+  let selectedDictKey = 'phonetic-words';
+  const dictionaries = { 'phonetic-words': null, 'full': null };
 
   const phonemes = [
     "S", "AE", "T", "IH", "P", "N",
@@ -208,10 +284,8 @@
   ];
 
   const filePaths = {
-    'clean-common': 'https://raw.githubusercontent.com/backup765/phonics-searcher/refs/heads/main/data/cmu_dict_clean_common.json',
-    'clean': 'https://raw.githubusercontent.com/backup765/phonics-searcher/refs/heads/main/data/cmu_dict_clean.json',
-    'common': 'https://raw.githubusercontent.com/backup765/phonics-searcher/refs/heads/main/data/cmu_dict_common.json',
-    'full': 'https://raw.githubusercontent.com/backup765/phonics-searcher/refs/heads/main/data/cmu_dict_full.json'
+    'phonetic-words': 'https://raw.githubusercontent.com/backup765/phonics-searcher/refs/heads/main/data/cmu_dict_clean_common.json',
+    'full': 'https://raw.githubusercontent.com/backup765/phonics-searcher/refs/heads/main/data/cmu_dict_common.json'
   };
 
   async function loadDictionaries() {
@@ -222,6 +296,11 @@
       });
       await Promise.all(loaders);
     } catch (err) { console.error("Error loading dictionaries:", err); }
+  }
+
+  function toggleHelpInfo() {
+    const popup = document.getElementById('info-popup');
+    popup.classList.toggle('active');
   }
 
   function toggleRow(rowIdx) {
