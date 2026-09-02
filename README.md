@@ -9,3 +9,5 @@ TODO:
 Add Japanese language support
 
 consider removing the select row buttons
+
+run python3 -m http.server 8000 for local testing in codespace
